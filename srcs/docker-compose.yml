@@ -1,19 +1,21 @@
-version "3.8"
-
 services:
-
   mariadb:
-    build:  ./requirements/mariadb
-    conatiner_name: mariadb
+    build: ./requirements/mariadb
+    container_name: mariadb
+    env_file:
+      - .env
+    secrets:
+      - db_root_password
+      - db_password
     networks:
       - inception
     volumes:
       - mariadb_data:/var/lib/mysql
     restart: always
 
-  wodpress:
-    build:  ./requirements/wordpress
-    conatiner_name: wordpress
+  wordpress:
+    build: ./requirements/wordpress
+    container_name: wordpress
     networks:
       - inception
     volumes:
@@ -23,8 +25,8 @@ services:
     restart: always
 
   nginx:
-    build:  ./requirements/nginx
-    conatiner_name: nginx
+    build: ./requirements/nginx
+    container_name: nginx
     networks:
       - inception
     ports:
@@ -33,10 +35,17 @@ services:
       - wordpress
     restart: always
 
-  volumes:
-    mariadb_data:
-    wordpress_data:
+volumes:
+  mariadb_data:
+  wordpress_data:
 
-  networks:
-    inception:
-      driver: bridge
+networks:
+  inception:
+    driver: bridge
+
+secrets:
+  db_root_password:
+    file: ../secrets/db_root_password.txt
+  db_password:
+    file: ../secrets/db_password.txt
+
