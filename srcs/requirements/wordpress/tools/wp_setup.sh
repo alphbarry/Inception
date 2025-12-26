@@ -1,6 +1,7 @@
 #!/bin/sh
-set -e
+set -euo pipefail
 
+mkdir -p /var/www/html
 cd /var/www/html
 
 # Esperar a MariaDB
@@ -14,12 +15,13 @@ if ! command -v wp >/dev/null 2>&1; then
   chmod +x /usr/local/bin/wp
 fi
 
-# Descargar WP solo si no existe
-if [ ! -f wp-config.php ]; then
-  curl -O https://wordpress.org/latest.tar.gz
-  tar -xzf latest.tar.gz --strip-components=1
-  rm latest.tar.gz
+# Descargar WP solo si no existe index.php (volumen vacío)
+if [ ! -f index.php ]; then
+  wp core download --allow-root --force
+fi
 
+# Crear wp-config si no existe
+if [ ! -f wp-config.php ]; then
   cp wp-config-sample.php wp-config.php
 
   sed -i "s/database_name_here/$MYSQL_DATABASE/" wp-config.php
@@ -41,6 +43,8 @@ if [ ! -f wp-config.php ]; then
     --user_pass="$(cat /run/secrets/db_password)" \
     --allow-root
 fi
+
+chown -R www-data:www-data /var/www/html
 
 exec php-fpm82 -F
 
