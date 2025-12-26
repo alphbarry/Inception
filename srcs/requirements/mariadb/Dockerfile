@@ -9,6 +9,7 @@ RUN mkdir -p /var/lib/mysql /run/mysqld \
 
 COPY tools/init_db.sh /usr/local/bin/init_db.sh
 RUN chmod +x /usr/local/bin/init_db.sh
+COPY conf/my.cnf /etc/my.cnf
 
 EXPOSE 3306
 

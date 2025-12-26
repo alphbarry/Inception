@@ -2,7 +2,8 @@ FROM alpine:3.19
 
 RUN apk update && apk add --no-cache \
     nginx \
-    openssl
+    openssl \
+    netcat-openbsd
 
 # Create www-data user/group to match WordPress container
 RUN addgroup -g 82 -S www-data 2>/dev/null || true \

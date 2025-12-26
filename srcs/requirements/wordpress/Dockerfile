@@ -26,10 +26,16 @@ RUN chmod +x /usr/local/bin/wp_setup.sh
 
 EXPOSE 9000
 
+# Configurar PHP-FPM para escuchar en todas las interfaces
 RUN sed -i 's|^user = .*|user = www-data|' /etc/php82/php-fpm.d/www.conf \
  && sed -i 's|^group = .*|group = www-data|' /etc/php82/php-fpm.d/www.conf \
- && sed -i 's|listen = .*|listen = 9000|' /etc/php82/php-fpm.d/www.conf \
- && sed -i 's|;clear_env = no|clear_env = no|' /etc/php82/php-fpm.d/www.conf
+ && sed -i 's|^listen = .*|listen = 0.0.0.0:9000|' /etc/php82/php-fpm.d/www.conf \
+ && sed -i 's|^;listen = .*|listen = 0.0.0.0:9000|' /etc/php82/php-fpm.d/www.conf \
+ && sed -i 's|;clear_env = no|clear_env = no|' /etc/php82/php-fpm.d/www.conf \
+ && sed -i 's|;listen.owner = .*|listen.owner = www-data|' /etc/php82/php-fpm.d/www.conf \
+ && sed -i 's|;listen.group = .*|listen.group = www-data|' /etc/php82/php-fpm.d/www.conf \
+ && sed -i 's|;listen.mode = .*|listen.mode = 0660|' /etc/php82/php-fpm.d/www.conf \
+ && grep -q "^listen = 0.0.0.0:9000" /etc/php82/php-fpm.d/www.conf || sed -i '/^\[www\]/a listen = 0.0.0.0:9000' /etc/php82/php-fpm.d/www.conf
 
 RUN grep -q '^www-data:' /etc/group || addgroup -S www-data \
  && grep -q '^www-data:' /etc/passwd || adduser -S -G www-data www-data \
