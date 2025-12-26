@@ -8,6 +8,12 @@ until mysqladmin ping -h mariadb -u"$MYSQL_USER" -p"$(cat /run/secrets/db_passwo
   sleep 2
 done
 
+# Instalar WP-CLI si no está disponible
+if ! command -v wp >/dev/null 2>&1; then
+  curl -sS -o /usr/local/bin/wp https://raw.githubusercontent.com/wp-cli/builds/gh-pages/phar/wp-cli.phar
+  chmod +x /usr/local/bin/wp
+fi
+
 # Descargar WP solo si no existe
 if [ ! -f wp-config.php ]; then
   curl -O https://wordpress.org/latest.tar.gz
@@ -27,11 +33,13 @@ if [ ! -f wp-config.php ]; then
     --admin_user="$WP_ADMIN_USER" \
     --admin_password="$(cat /run/secrets/db_password)" \
     --admin_email="$WP_ADMIN_EMAIL" \
-    --skip-email
+    --skip-email \
+    --allow-root
 
   wp user create "$WP_USER" "$WP_USER_EMAIL" \
     --role=editor \
-    --user_pass="$(cat /run/secrets/db_password)"
+    --user_pass="$(cat /run/secrets/db_password)" \
+    --allow-root
 fi
 
 exec php-fpm82 -F

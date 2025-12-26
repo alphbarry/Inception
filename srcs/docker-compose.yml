@@ -31,10 +31,12 @@ services:
   nginx:
     build: ./requirements/nginx
     container_name: nginx
+    env_file:
+      - .env
     networks:
       - inception
     volumes:
-      - wordpress_data:/data/www/html
+      - wordpress_data:/var/www/html
     ports:
       - "443:443"
     depends_on:

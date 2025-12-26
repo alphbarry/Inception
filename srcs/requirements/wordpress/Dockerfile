@@ -16,6 +16,7 @@ RUN apk update && apk add --no-cache \
     mariadb-client
 
 RUN mkdir -p /run/php
+RUN mkdir -p /var/www/html
 
 COPY tools/wp_setup.sh /usr/local/bin/wp_setup.sh
 RUN chmod +x /usr/local/bin/wp_setup.sh
@@ -27,7 +28,8 @@ RUN sed -i 's|^user = .*|user = www-data|' /etc/php82/php-fpm.d/www.conf \
  && sed -i 's|listen = .*|listen = 9000|' /etc/php82/php-fpm.d/www.conf \
  && sed -i 's|;clear_env = no|clear_env = no|' /etc/php82/php-fpm.d/www.conf
 
-RUN adduser -D -g 'www-data' www-data \
+RUN grep -q '^www-data:' /etc/group || addgroup -S www-data \
+ && grep -q '^www-data:' /etc/passwd || adduser -S -G www-data www-data \
  && chown -R www-data:www-data /var/www/html /run/php
 
 
