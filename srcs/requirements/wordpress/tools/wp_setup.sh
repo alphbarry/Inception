@@ -10,6 +10,9 @@ if ! command -v wp >/dev/null 2>&1; then
   chmod +x /usr/local/bin/wp
 fi
 
+# Raise WP-CLI memory to avoid OOM on download/extract
+export WP_CLI_PHP_ARGS="-d memory_limit=256M"
+
 # Poblar WordPress incluso si el volumen está vacío antes de que arranque MariaDB
 if [ ! -f index.php ]; then
   wp core download --allow-root --force

@@ -18,6 +18,9 @@ RUN apk update && apk add --no-cache \
 RUN mkdir -p /run/php
 RUN mkdir -p /var/www/html
 
+# Increase PHP memory limit for CLI/FPM to avoid WP-CLI OOM during download/install
+RUN echo "memory_limit=256M" > /etc/php82/conf.d/memory-limit.ini
+
 COPY tools/wp_setup.sh /usr/local/bin/wp_setup.sh
 RUN chmod +x /usr/local/bin/wp_setup.sh
 
