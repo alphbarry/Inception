@@ -4,10 +4,16 @@ set -euo pipefail
 mkdir -p /var/www/html
 cd /var/www/html
 
-# Esperar a MariaDB
-until mysqladmin ping -h mariadb -u"$MYSQL_USER" -p"$(cat /run/secrets/db_password)" --silent; do
-  sleep 2
-done
+# Instalar WP-CLI si no está disponible
+if ! command -v wp >/dev/null 2>&1; then
+  curl -sS -o /usr/local/bin/wp https://raw.githubusercontent.com/wp-cli/builds/gh-pages/phar/wp-cli.phar
+  chmod +x /usr/local/bin/wp
+fi
+
+# Poblar WordPress incluso si el volumen está vacío antes de que arranque MariaDB
+if [ ! -f index.php ]; then
+  wp core download --allow-root --force
+fi
 
 # Instalar WP-CLI si no está disponible
 if ! command -v wp >/dev/null 2>&1; then
@@ -15,10 +21,10 @@ if ! command -v wp >/dev/null 2>&1; then
   chmod +x /usr/local/bin/wp
 fi
 
-# Descargar WP solo si no existe index.php (volumen vacío)
-if [ ! -f index.php ]; then
-  wp core download --allow-root --force
-fi
+# Esperar a MariaDB antes de configurar wp-config e instalar
+until mysqladmin ping -h mariadb -u"$MYSQL_USER" -p"$(cat /run/secrets/db_password)" --silent; do
+  sleep 2
+done
 
 # Crear wp-config si no existe
 if [ ! -f wp-config.php ]; then
