@@ -1,0 +1,46 @@
+# Secrets - NEVER commit password files
+secrets/*
+!secrets/.gitkeep
+
+# Environment variables
+.env
+srcs/.env
+.env.local
+.env.*.local
+
+# Docker volumes and data
+backups/
+*.sql
+*.sql.gz
+*.tar.gz
+!requirements/**/*.tar.gz
+
+# OS files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+*~
+
+# Editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.project
+.classpath
+.settings/
+
+# Logs
+*.log
+logs/
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+
