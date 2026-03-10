@@ -7,7 +7,7 @@ This document describes how to set up, build, and develop the Inception project 
 ### Required Software
 
 - **Docker Engine**: Version 20.10 or higher
-  - Installation: See [INSTALL_DOCKER.md](INSTALL_DOCUMENT.md) or [Docker Installation Guide](https://docs.docker.com/engine/install/)
+  - Installation: See [INSTALL_DOCKER.md](INSTALL_DOCKER.md) or [Docker Installation Guide](https://docs.docker.com/engine/install/)
 - **Docker Compose**: Version 2.0+ (recommended) or 1.29+
   - Usually included with Docker Desktop
   - Can be installed separately: `sudo apt-get install docker-compose-plugin`
@@ -46,10 +46,10 @@ cd srcs
 cat > .env << EOF
 DOMAIN_NAME=alphbarr.42.fr
 MYSQL_DATABASE=wordpress
-MYSQL_USER=wpuser
-WP_TITLE=Inception WordPress Site
-WP_ADMIN_USER=admin
-WP_ADMIN_EMAIL=admin@alphbarr.42.fr
+MYSQL_USER=wp_alpha
+WP_TITLE=Inception
+WP_ADMIN_USER=supervisor
+WP_ADMIN_EMAIL=supervisor@alphbarr.42.fr
 WP_USER=editor
 WP_USER_EMAIL=editor@alphbarr.42.fr
 EOF
@@ -61,12 +61,14 @@ EOF
 |----------|-------------|---------|
 | `DOMAIN_NAME` | Domain name for the website | `alphbarr.42.fr` |
 | `MYSQL_DATABASE` | Database name for WordPress | `wordpress` |
-| `MYSQL_USER` | Database user for WordPress | `wpuser` |
-| `WP_TITLE` | WordPress site title | `My Site` |
-| `WP_ADMIN_USER` | WordPress administrator username | `admin` |
-| `WP_ADMIN_EMAIL` | WordPress administrator email | `admin@example.com` |
+| `MYSQL_USER` | Database user for WordPress | `wp_alpha` |
+| `WP_TITLE` | WordPress site title | `Inception` |
+| `WP_ADMIN_USER` | WordPress administrator username | `supervisor` |
+| `WP_ADMIN_EMAIL` | WordPress administrator email | `supervisor@alphbarr.42.fr` |
 | `WP_USER` | Additional WordPress user (editor role) | `editor` |
 | `WP_USER_EMAIL` | Additional user email | `editor@example.com` |
+
+> Subject reminder: the WordPress admin username must **not** contain `admin`, `Admin`, or similar variations.
 
 ### 3. Create Secrets
 
@@ -89,7 +91,18 @@ chmod 600 secrets/*.txt
 - Never commit these files to Git (ensure they're in `.gitignore`)
 - Use `chmod 600` to restrict access to owner only
 
-### 4. Configure /etc/hosts (Local Development)
+### 4. Prepare Host Data Directories for Named Volumes
+
+The subject requires that the WordPress (files) and MariaDB (database) volumes store their data inside `/home/<login>/data` on the host. Create the directories before launching Docker Compose:
+
+```bash
+mkdir -p /home/alphbarr/data/mariadb
+mkdir -p /home/alphbarr/data/wordpress
+```
+
+> If you work under a different 42 login, change `alphbarr` accordingly or override `HOST_LOGIN` when running `make` (e.g., `make HOST_LOGIN=jdoe up`).
+
+### 5. Configure /etc/hosts (Local Development)
 
 For local testing, add the domain to your hosts file:
 
@@ -97,7 +110,7 @@ For local testing, add the domain to your hosts file:
 sudo bash -c 'echo "127.0.0.1 alphbarr.42.fr" >> /etc/hosts'
 ```
 
-### 5. Verify Docker Installation
+### 6. Verify Docker Installation
 
 ```bash
 docker --version
@@ -363,7 +376,7 @@ docker compose exec nginx ping -c 3 wordpress
 
 - **Volume Name**: `inception_mariadb_data` (or `mariadb_data` in compose)
 - **Container Path**: `/var/lib/mysql`
-- **Host Path**: Managed by Docker (typically `/var/lib/docker/volumes/inception_mariadb_data/_data`)
+- **Host Path**: `/home/alphbarr/data/mariadb` (created manually to satisfy subject requirements)
 
 **Contains:**
 - Database files (`.ibd`, `.frm` files)
@@ -375,7 +388,7 @@ docker compose exec nginx ping -c 3 wordpress
 
 - **Volume Name**: `inception_wordpress_data` (or `wordpress_data` in compose)
 - **Container Path**: `/var/www/html`
-- **Host Path**: Managed by Docker (typically `/var/lib/docker/volumes/inception_wordpress_data/_data`)
+- **Host Path**: `/home/alphbarr/data/wordpress`
 
 **Contains:**
 - WordPress core files (`wp-admin/`, `wp-includes/`, `wp-content/`)
@@ -623,7 +636,8 @@ docker compose exec wordpress chown -R www-data:www-data /var/www/html
 docker compose ps mariadb
 
 # Test database connection
-docker compose exec wordpress mysqladmin ping -h mariadb -u wpuser -p
+docker compose exec wordpress mysqladmin ping -h mariadb -u wp_alpha -p$(cat /run/secrets/db_password)
+# Replace wp_alpha with your MYSQL_USER value if different.
 
 # Check database credentials
 docker compose exec wordpress cat /var/www/html/wp-config.php | grep DB_
@@ -683,4 +697,3 @@ Inception/
 - [WordPress Development](https://developer.wordpress.org/)
 - [Nginx Configuration Guide](https://nginx.org/en/docs/)
 - [MariaDB Documentation](https://mariadb.com/kb/en/documentation/)
-

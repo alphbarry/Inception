@@ -1,4 +1,4 @@
-*This project has been created as part of the 42 curriculum by alphbarry.*
+*This project has been created as part of the 42 curriculum by alphbarr.*
 
 # Inception
 
@@ -46,14 +46,14 @@ For detailed Docker installation instructions, see [INSTALL_DOCKER.md](INSTALL_D
    ```
 
 2. **Set up environment variables:**
-   Create a `.env` file in the `srcs/` directory with the following variables:
+   Create a `.env` file in the `srcs/` directory with the following variables (ensure your administrator username does **not** contain the substring “admin”, per subject rules):
    ```bash
    DOMAIN_NAME=alphbarr.42.fr
    MYSQL_DATABASE=wordpress
-   MYSQL_USER=wpuser
-   WP_TITLE=Inception WordPress Site
-   WP_ADMIN_USER=admin
-   WP_ADMIN_EMAIL=admin@alphbarr.42.fr
+   MYSQL_USER=wp_alpha
+   WP_TITLE=Inception
+   WP_ADMIN_USER=supervisor
+   WP_ADMIN_EMAIL=supervisor@alphbarr.42.fr
    WP_USER=editor
    WP_USER_EMAIL=editor@alphbarr.42.fr
    ```
@@ -65,14 +65,19 @@ For detailed Docker installation instructions, see [INSTALL_DOCKER.md](INSTALL_D
    echo "your_secure_db_password" > secrets/db_password.txt
    ```
 
-4. **Build and start the services:**
+4. **Prepare host directories for Docker named volumes (required):**
    ```bash
-   cd srcs
-   docker compose build
-   docker compose up -d
+   mkdir -p /home/alphbarr/data/mariadb
+   mkdir -p /home/alphbarr/data/wordpress
+   ```
+   If your 42 login differs, replace `alphbarr` with your actual login or override `HOST_LOGIN` when running `make` (e.g., `make HOST_LOGIN=jdoe up`).
+
+5. **Build and start the services:**
+   ```bash
+   make up
    ```
 
-5. **Access the website:**
+6. **Access the website:**
    - Website: `https://alphbarr.42.fr`
    - WordPress Admin: `https://alphbarr.42.fr/wp-admin`
    - Add `127.0.0.1 alphbarr.42.fr` to `/etc/hosts` if testing locally

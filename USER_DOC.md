@@ -160,7 +160,7 @@ If the server is accessible from the network:
 
 The default WordPress administrator credentials are:
 
-- **Username**: Set in `.env` file (`WP_ADMIN_USER` variable, default: `admin`)
+- **Username**: Set in `.env` file (`WP_ADMIN_USER` variable, default: `supervisor`)
 - **Password**: Same as the database password (stored in `secrets/db_password.txt`)
 
 ### Access Admin Panel
@@ -217,8 +217,9 @@ cat secrets/db_root_password.txt
    ```
 4. Update MariaDB user password:
    ```bash
-   docker compose exec mariadb mysql -u root -p$(cat ../secrets/db_root_password.txt) -e "ALTER USER 'wpuser'@'%' IDENTIFIED BY 'new_password'; FLUSH PRIVILEGES;"
+   docker compose exec mariadb mysql -u root -p$(cat ../secrets/db_root_password.txt) -e "ALTER USER 'wp_alpha'@'%' IDENTIFIED BY 'new_password'; FLUSH PRIVILEGES;"
    ```
+   > Replace `wp_alpha` with your `MYSQL_USER` value if you changed it.
 5. Restart WordPress:
    ```bash
    docker compose restart wordpress
@@ -234,8 +235,9 @@ cat secrets/db_root_password.txt
 
 **Via Command Line:**
 ```bash
-docker compose exec wordpress wp user update admin --user_pass="new_password" --allow-root
+docker compose exec wordpress wp user update supervisor --user_pass="new_password" --allow-root
 ```
+> Replace `supervisor` with whatever `WP_ADMIN_USER` value you configured.
 
 ### Security Best Practices
 
@@ -246,6 +248,14 @@ docker compose exec wordpress wp user update admin --user_pass="new_password" --
   chmod 600 secrets/*.txt
   ```
 - **Regularly rotate passwords**: Especially in production environments
+
+## Data Location and Persistence
+
+- **WordPress files** live inside the Docker named volume `wordpress_data`, which maps to `/home/alphbarr/data/wordpress` on the host. Theme/plugin changes and uploaded media stay there even if the container is recreated.
+- **MariaDB data** lives in the `mariadb_data` volume mapped to `/home/alphbarr/data/mariadb`. Database tables persist as long as the volume exists.
+- Deleting volumes (`docker compose down -v` or `make fclean`) removes these directories and wipes the site; stopping/restarting containers leaves data intact.
+- Back up the directories or use the provided `make backup` target before destructive operations.
+> Replace `alphbarr` with your own 42 login if it differs.
 
 ## Checking Service Health
 
@@ -311,8 +321,9 @@ Expected: HTTP 200
 
 ```bash
 # Test from WordPress container
-docker compose exec wordpress mysqladmin ping -h mariadb -u wpuser -p$(cat /run/secrets/db_password)
+docker compose exec wordpress mysqladmin ping -h mariadb -u wp_alpha -p$(cat /run/secrets/db_password)
 ```
+> Replace `wp_alpha` with the `MYSQL_USER` stored in your `.env` file if different.
 
 Expected: `mysqld is alive`
 
@@ -388,4 +399,3 @@ If you encounter issues:
 2. Verify container status: `docker compose ps`
 3. Review the [DEV_DOC.md](DEV_DOC.md) for troubleshooting details
 4. Check Docker documentation: https://docs.docker.com/
-

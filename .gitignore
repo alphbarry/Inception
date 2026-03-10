@@ -15,6 +15,9 @@ backups/
 *.tar.gz
 !requirements/**/*.tar.gz
 
+# Evaluation sheets
+Intra Projects Inception Edit.pdf
+
 # OS files
 .DS_Store
 .DS_Store?
@@ -43,4 +46,3 @@ logs/
 tmp/
 temp/
 *.tmp
-

@@ -7,28 +7,32 @@ YELLOW := $(shell tput -Txterm setaf 3)
 RESET  := $(shell tput -Txterm sgr0)
 
 # Variables
-COMPOSE_FILE = srcs/docker-compose.yml
-COMPOSE = docker compose -f $(COMPOSE_FILE)
+HOST_LOGIN        ?= alphbarr
+HOST_DATA_DIR     ?= /home/$(HOST_LOGIN)/data
+WORDPRESS_DATA_DIR = $(HOST_DATA_DIR)/wordpress
+MARIADB_DATA_DIR   = $(HOST_DATA_DIR)/mariadb
+COMPOSE_FILE      = srcs/docker-compose.yml
+COMPOSE           = docker compose -f $(COMPOSE_FILE)
 
-.PHONY: help build up down restart logs ps clean re fclean all
+.PHONY: help build up down restart logs ps clean re fclean all ensure-data-dirs build-no-cache rebuild re down-v logs-nginx logs-wordpress logs-mariadb status stop start exec-nginx exec-wordpress exec-mariadb test-nginx volumes volumes-inspect network backup restore prune prune-all info
 
-# Default target
-all: help
+# Default target sets up the full stack
+all: up
 
 help: ## Show this help message
 	@echo "$(GREEN)Available commands:$(RESET)"
 	@echo ""
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "  $(YELLOW)%-15s$(RESET) %s\n", $$1, $$2}'
 
-build: ## Build all Docker images
+build: ensure-data-dirs ## Build all Docker images
 	@echo "$(GREEN)Building Docker images...$(RESET)"
 	@cd srcs && docker compose build
 
-build-no-cache: ## Build all Docker images without cache
+build-no-cache: ensure-data-dirs ## Build all Docker images without cache
 	@echo "$(GREEN)Building Docker images (no cache)...$(RESET)"
 	@cd srcs && docker compose build --no-cache
 
-up: ## Start all containers in detached mode
+up: ensure-data-dirs ## Start all containers in detached mode
 	@echo "$(GREEN)Starting containers...$(RESET)"
 	@cd srcs && docker compose up -d
 
@@ -173,3 +177,5 @@ info: ## Show project information
 	@echo "$(GREEN)Network:$(RESET)"
 	@docker network ls | grep inception || echo "No inception network found"
 
+ensure-data-dirs: ## Create required host data directories for named volumes
+	@mkdir -p $(WORDPRESS_DATA_DIR) $(MARIADB_DATA_DIR)
